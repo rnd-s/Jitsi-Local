@@ -1,39 +1,159 @@
-# Jitsi Meet on Docker
 
-![](resources/jitsi-docker.png)
+````md
+# Jitsi Local (Custom)
 
-[Jitsi](https://jitsi.org/) is a set of Open Source projects that allows you to easily build and deploy secure videoconferencing solutions.
+Este repositório contém uma **instalação local e customizada do Jitsi Meet**,
+baseada no projeto oficial [`jitsi/docker-jitsi-meet`](https://github.com/jitsi/docker-jitsi-meet).
 
-[Jitsi Meet](https://jitsi.org/jitsi-meet/) is a fully encrypted, 100% Open Source video conferencing solution that you can use all day, every day, for free — with no account needed.
+O objetivo é servir como **ambiente de estudo, testes e implantação própria**,
+permitindo customizações sem afetar o repositório oficial.
 
-This repository contains the necessary tools to run a Jitsi Meet stack on [Docker](https://www.docker.com) using [Docker Compose](https://docs.docker.com/compose/).
+---
 
-All our images are published on [DockerHub](https://hub.docker.com/u/jitsi/).
+##  Objetivo do Projeto
 
-## Supported architectures
+- Implantar o **Jitsi Meet via Docker** em ambiente local
+- Permitir **customizações próprias** (configurações, segurança, testes)
+- Facilitar estudos de:
+  - Docker e Docker Compose
+  - Infraestrutura de comunicação em tempo real
+  - WebRTC
+- Manter possibilidade de **atualização a partir do projeto oficial**
 
-Starting with `stable-7439` the published images are available for `amd64` and `arm64`.
+---
 
-## Tags
+##  Base do Projeto
 
-These are the currently published tags for all our images:
+Este repositório é derivado de:
 
-Tag | Description
--- | --
-`stable` | Points to the latest stable release
-`stable-NNNN-X` | A stable release
-`unstable` | Points to the latest unstable release
-`unstable-YYYY-MM-DD` | Daily unstable release
-`latest` | Deprecated, no longer updated (will be removed)
+- **Projeto oficial**: `jitsi/docker-jitsi-meet`
+- **Licença**: Apache 2.0
 
-## Installation
+O histórico de commits foi preservado para manter compatibilidade e rastreabilidade.
 
-The installation manual is available [here](https://jitsi.github.io/handbook/docs/devops-guide/devops-guide-docker).
+**Este NÃO é o repositório oficial do Jitsi.**
 
-### Kubernetes
+---
 
-If you plan to install the jitsi-meet stack on a Kubernetes cluster you can find tools and tutorials in the project [Jitsi on Kubernetes](https://github.com/jitsi-contrib/jitsi-kubernetes).
+## Estrutura do Projeto
 
-## TODO
+Principais componentes:
 
-* Builtin TURN server.
+- `docker-compose.yml` — Orquestração dos serviços
+- `env.example` — Exemplo de variáveis de ambiente
+- `prosody/` — Servidor XMPP
+- `jicofo/` — Gerenciamento de conferências
+- `jvb/` — Jitsi Video Bridge
+- `web/` — Interface Web
+- `.github/workflows/` — CI (GitHub Actions)
+
+---
+
+## Pré-requisitos
+
+- Docker
+- Docker Compose
+- Sistema Linux (recomendado)
+- Porta 80 / 443 / 10000 liberadas (dependendo do setup)
+
+---
+
+## Uso Básico
+
+### Clonar o repositório
+
+```bash
+git clone https://github.com/rnd-s/Jitsi-Local.git
+cd Jitsi-Local
+````
+
+### Criar arquivo de ambiente
+
+```bash
+cp env.example .env
+```
+
+Edite o `.env` conforme sua necessidade.
+
+---
+
+### Subir os serviços
+
+```bash
+docker compose up -d
+```
+
+---
+
+### Acessar
+
+Abra no navegador:
+
+```
+http://localhost
+```
+
+(ou o domínio configurado no `.env`)
+
+---
+
+##  Atualizações do Projeto Oficial
+
+O repositório oficial está configurado como **upstream**.
+
+```bash
+git remote -v
+```
+
+Para buscar atualizações do Jitsi oficial:
+
+```bash
+git fetch upstream
+git rebase upstream/main
+```
+
+Depois:
+
+```bash
+git push origin main
+```
+
+Conflitos podem ocorrer se houver customizações profundas.
+
+---
+
+## Segurança
+
+* Arquivos sensíveis (`.env`) **não devem ser versionados**
+* Recomenda-se configurar:
+
+  * HTTPS
+  * Firewall
+  * Autenticação de usuários
+  * Tokens de acesso
+
+---
+
+##  Observações
+
+* Este projeto é mantido para **uso educacional, laboratório e implantação própria**
+* Não há vínculo oficial com a equipe do Jitsi
+* Para contribuições oficiais, utilize o repositório original
+
+---
+
+##  Licença
+
+Este projeto segue a licença **Apache 2.0**, conforme o projeto original.
+
+---
+
+##  Autor / Mantenedor
+
+Repositório mantido por **rnd-s**
+Customizações e organização próprias
+
+```
+
+---
+
