@@ -38,7 +38,7 @@ Todos os serviços rodam em contêineres Docker, orquestrados via `docker-compos
 
 ---
 
-## ⚙️ Configurações Utilizadas (.env)
+## Configurações Utilizadas (.env)
 
 Abaixo estão as **principais configurações efetivamente utilizadas neste projeto**.
 
@@ -54,7 +54,7 @@ PUBLIC_URL=https://192.168.0.100:8444
 JVB_ADVERTISE_IPS=192.168.0.100
 ```
 
-➡️ O acesso ao Jitsi é feito via navegador em:
+O acesso ao Jitsi é feito via navegador em:
 
 ```
 https://192.168.0.100:8444
@@ -150,7 +150,7 @@ cp env.example .env
 
 > O `.env` **não deve ser versionado** se contiver segredos.
 
-### 4️⃣ Subir os containers
+### Subir os containers
 
 ```bash
 docker compose up -d
