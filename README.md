@@ -1,51 +1,50 @@
-
-````md
 # Jitsi Local (Custom)
 
 Este repositório contém uma **instalação local e customizada do Jitsi Meet**,
-baseada no projeto oficial [`jitsi/docker-jitsi-meet`](https://github.com/jitsi/docker-jitsi-meet).
+baseada no projeto oficial **docker-jitsi-meet**, mantido pela equipe do Jitsi.
 
-O objetivo é servir como **ambiente de estudo, testes e implantação própria**,
-permitindo customizações sem afetar o repositório oficial.
-
----
-
-##  Objetivo do Projeto
-
-- Implantar o **Jitsi Meet via Docker** em ambiente local
-- Permitir **customizações próprias** (configurações, segurança, testes)
-- Facilitar estudos de:
-  - Docker e Docker Compose
-  - Infraestrutura de comunicação em tempo real
-  - WebRTC
-- Manter possibilidade de **atualização a partir do projeto oficial**
-
----
-
-##  Base do Projeto
-
-Este repositório é derivado de:
-
-- **Projeto oficial**: `jitsi/docker-jitsi-meet`
-- **Licença**: Apache 2.0
-
-O histórico de commits foi preservado para manter compatibilidade e rastreabilidade.
+O objetivo deste projeto é servir como **ambiente de estudo, laboratório e implantação própria**,
+permitindo modificações e testes sem impactar o repositório oficial.
 
 **Este NÃO é o repositório oficial do Jitsi.**
 
 ---
 
+##  Objetivo do Projeto
+
+- Implantar o **Jitsi Meet utilizando Docker e Docker Compose**
+- Permitir **customizações locais** (configurações, segurança, testes)
+- Servir como base para estudos de:
+  - Docker
+  - Infraestrutura de redes
+  - Comunicação em tempo real (WebRTC)
+- Manter compatibilidade com o projeto oficial do Jitsi
+
+---
+
+##  Projeto Base
+
+Este repositório é derivado de:
+
+- Repositório oficial: https://github.com/jitsi/docker-jitsi-meet
+- Licença: **Apache License 2.0**
+
+O histórico de commits foi preservado para manter rastreabilidade e compatibilidade.
+
+---
+
 ## Estrutura do Projeto
 
-Principais componentes:
+Principais diretórios e arquivos:
 
 - `docker-compose.yml` — Orquestração dos serviços
 - `env.example` — Exemplo de variáveis de ambiente
 - `prosody/` — Servidor XMPP
-- `jicofo/` — Gerenciamento de conferências
+- `jicofo/` — Gerenciador de conferências
 - `jvb/` — Jitsi Video Bridge
 - `web/` — Interface Web
-- `.github/workflows/` — CI (GitHub Actions)
+- `.github/workflows/` — Integração contínua (CI)
+- `jibri/`, `jigasi/` — Serviços opcionais (gravação, SIP)
 
 ---
 
@@ -53,19 +52,23 @@ Principais componentes:
 
 - Docker
 - Docker Compose
-- Sistema Linux (recomendado)
-- Porta 80 / 443 / 10000 liberadas (dependendo do setup)
+- Sistema operacional Linux (recomendado)
+- Portas liberadas (dependendo da configuração):
+  - 80 / 443 (HTTP/HTTPS)
+  - 10000/UDP (WebRTC)
 
 ---
 
-## Uso Básico
+##  Como Utilizar
 
 ### Clonar o repositório
 
 ```bash
 git clone https://github.com/rnd-s/Jitsi-Local.git
 cd Jitsi-Local
-````
+
+---
+
 
 ### Criar arquivo de ambiente
 
