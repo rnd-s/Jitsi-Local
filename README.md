@@ -1,202 +1,205 @@
- Jitsi Local (Docker)
 
-Este repositório contém uma **instalação local do Jitsi Meet usando Docker Compose**, baseada no projeto oficial [`jitsi/docker-jitsi-meet`], adaptada para **uso em rede local (LAN)**, com **autenticação habilitada** e **sem Let's Encrypt**.
+# Jitsi Meet Local (Docker) — Guia Final de Configuração
 
-O objetivo é permitir a execução do Jitsi em ambiente de testes, laboratório ou uso interno, sem depender de domínio público ou certificado HTTPS válido.
+Este repositório documenta toda a jornada real de configuração de um Jitsi Meet local, rodando com Docker / Docker Compose, incluindo autenticação, convidados, sala de espera (Lobby) e correções de estabilidade para rede local (LAN).
 
----
-
-##  Visão Geral da Arquitetura
-
-* Jitsi Meet (Web)
-* Prosody (XMPP)
-* Jicofo (Controle de conferências)
-* JVB (Jitsi Videobridge)
-* Docker + Docker Compose
-* Rede local (LAN)
-
-Todos os serviços rodam em contêineres Docker, orquestrados via `docker-compose.yml`.
+O objetivo é deixar claro o comportamento esperado do Jitsi, evitar falsas interpretações de erro e facilitar futuras manutenções.
 
 ---
 
-##  Estrutura do Projeto
+## Visão Geral
 
-```
-.
+Este ambiente fornece:
+
+* Jitsi Meet rodando localmente (HTTPS na porta 8444)
+* Autenticação via Prosody (XMPP)
+* Suporte a usuários autenticados e convidados
+* Sala de espera (Lobby) funcional
+* Controle de moderador
+* Correções de estabilidade para uso em rede local
+
+Importante:
+O Jitsi **não bloqueia usuários autenticados pelo Lobby**.
+Se o usuário está autenticado, ele entra diretamente na sala.
+O Lobby é aplicado apenas a convidados.
+
+---
+
+## Arquitetura dos Containers
+
+O ambiente é composto por:
+
+* jitsi-web
+  Interface Web (HTTPS/8444)
+
+* prosody
+  Autenticação e XMPP (componente central)
+
+* jicofo
+  Controle das conferências
+
+* jvb
+  Media Bridge (áudio/vídeo via UDP)
+
+Todos os serviços são orquestrados via `docker-compose.yml`.
+
+---
+
+## Pré-requisitos
+
+* Docker e Docker Compose
+* Navegador moderno (Chrome, Firefox ou Edge)
+* IP fixo no servidor (exemplo: 192.168.0.100)
+
+### Portas necessárias
+
+| Porta | Protocolo | Função                  |
+| ----- | --------- | ----------------------- |
+| 8444  | TCP       | HTTPS (Web)             |
+| 8000  | TCP       | HTTP                    |
+| 10000 | UDP       | Áudio e vídeo (crítico) |
+
+---
+
+## Estrutura do Projeto
+
+```text
+Jitsi-Local/
 ├── docker-compose.yml
-├── .env                # Arquivo de configuração principal
-├── base/
-├── prosody/
-├── jicofo/
-├── jvb/
-├── web/
-├── jigasi/
-├── jibri/
-├── resources/
-└── README.md
+├── .env                  # Senhas e ajustes críticos
+├── README.md             # Documentação
+└── config/               # Persistência de dados
 ```
 
 ---
 
-## Configurações Utilizadas (.env)
+## Configuração de Segurança e Rede (.env)
 
-Abaixo estão as **principais configurações efetivamente utilizadas neste projeto**.
-
-###  Rede e Acesso
-
-* **IP do servidor:** `192.168.0.100`
-* **Ambiente:** Rede local (LAN)
+As opções abaixo são fundamentais para funcionamento correto e estável em rede local:
 
 ```env
-HTTP_PORT=8000
-HTTPS_PORT=8444
-PUBLIC_URL=https://192.168.0.100:8444
-JVB_ADVERTISE_IPS=192.168.0.100
-```
-
-O acesso ao Jitsi é feito via navegador em:
-
-```
-https://192.168.0.100:8444
-```
-
-> Como não há certificado válido, o navegador exibirá aviso de segurança.
-
----
-
-###  HTTPS / Certificados
-
-* **Let's Encrypt:** ❌ Desabilitado
-
-```env
-ENABLE_LETSENCRYPT=0
-```
-
-Motivo: ambiente local sem domínio público.
-
----
-
-###  Autenticação
-
-Este setup **exige login para criar salas**, mas **permite convidados** aguardarem no lobby.
-
-```env
+# Segurança
 ENABLE_AUTH=1
 ENABLE_GUESTS=1
 AUTH_TYPE=internal
+XMPP_DOMAIN=meet.jitsi
+
+# Rede e Estabilidade
+JVB_ADVERTISE_IPS=192.168.0.100
+ENABLE_XMPP_WEBSOCKET=0
+PUBLIC_URL=https://192.168.0.100:8444
 ```
 
- Comportamento:
+### Explicação das opções
 
-* Usuários autenticados → podem criar salas
-* Convidados → aguardam liberação no lobby
+| Opção                   | Função                                 |
+| ----------------------- | -------------------------------------- |
+| ENABLE_AUTH=1           | Exige login para criar e moderar salas |
+| ENABLE_GUESTS=1         | Permite convidados                     |
+| AUTH_TYPE=internal      | Autenticação interna do Prosody        |
+| JVB_ADVERTISE_IPS       | Corrige problemas de vídeo em LAN      |
+| ENABLE_XMPP_WEBSOCKET=0 | Evita quedas com SSL autoassinado      |
 
-As contas de usuários são gerenciadas internamente pelo Prosody.
+Essa combinação resolve a maioria dos problemas comuns em ambientes locais.
 
 ---
 
-###  Segurança (Senhas de Serviços)
+## Criação de Usuários (Prosody)
 
-As senhas internas foram geradas com o script oficial:
+Para criar usuários autenticados (administradores), utilize o comando abaixo:
 
 ```bash
-./gen-passwords.sh
+sudo docker compose exec prosody \
+prosodyctl --config /config/prosody.cfg.lua \
+register admin meet.jitsi 'SuaSenhaForte'
 ```
 
-Exemplo de serviços protegidos:
+Parâmetros:
 
-* Jicofo
-* JVB
-* Jigasi
-* Jibri
+* admin: nome do usuário
+* meet.jitsi: domínio interno (não alterar)
+* 'SuaSenhaForte': senha do usuário
 
-> **Nunca reutilizar essas senhas em outros serviços**.
-
----
-
-###  Serviços Opcionais
-
-| Serviço      | Status            |
-| ------------ | ----------------- |
-| Etherpad     | ❌ Não habilitado  |
-| Whiteboard   | ❌ Não habilitado  |
-| Jigasi (SIP) | ❌ Não configurado |
-| Jibri        | ❌ Não utilizado   |
-| JWT / LDAP   | ❌ Não configurado |
-
----
-
-##  Como Executar
-
-### Pré-requisitos
-
-* Docker
-* Docker Compose
-
-### Clonar o repositório
+Após isso, se necessário, reinicie os containers:
 
 ```bash
-git clone https://github.com/rnd-s/Jitsi-Local.git
-cd Jitsi-Local/docker-jitsi-meet
-```
-
-### Criar / ajustar o `.env`
-
-Copie o exemplo e ajuste conforme necessário:
-
-```bash
-cp env.example .env
-```
-
-> O `.env` **não deve ser versionado** se contiver segredos.
-
-### Subir os containers
-
-```bash
-docker compose up -d
-```
-
-### Acessar
-
-Abra no navegador:
-
-```
-https://192.168.0.100:8444
+sudo docker compose down && sudo docker compose up -d
 ```
 
 ---
 
-## Observações de Segurança
+## Comportamento de Entrada na Sala
 
-* Não expor esse setup diretamente à internet sem:
+### Usuário autenticado
 
-  * Firewall
-  * HTTPS válido
-  * Hardening adicional
-* Ideal apenas para:
+* Realiza login como anfitrião
+* Entra diretamente na sala
+* Torna-se moderador automaticamente
 
-  * Laboratórios
-  * Ambientes educacionais
-  * Testes
+### Convidado
 
----
+* Não realiza login
+* Entra na sala de espera se o Lobby estiver ativado
+* Aguarda aprovação do moderador
 
-##  Base do Projeto
-
-Este projeto é baseado no repositório oficial:
-
-* [https://github.com/jitsi/docker-jitsi-meet](https://github.com/jitsi/docker-jitsi-meet)
-
-Com adaptações para uso local.
+Esse é o comportamento oficial do Jitsi Meet.
 
 ---
 
-##  Autor
+## Sala de Espera (Lobby)
 
-Configuração e adaptação para ambiente local por **rnd-s**.
+A sala de espera:
+
+* Não bloqueia usuários autenticados
+* Aplica-se apenas a convidados
+* Não é ativada automaticamente
+
+### Como ativar
+
+Dentro da sala, como moderador:
+
+1. Clique no ícone de segurança
+2. Ative a opção "Habilitar sala de espera"
 
 ---
 
-##  Licença
+## Esclarecimento Importante
 
-Este projeto segue a mesma licença do projeto original do Jitsi Meet.
+Mensagem comum:
+"O lobby não está funcionando"
+
+Na prática:
+
+* Usuário autenticado entra direto: comportamento correto
+* Convidado entra direto: o Lobby não foi ativado pelo moderador
+
+O Lobby é um recurso de moderação, não de autenticação.
+
+---
+
+## Configuração do Navegador (Chrome / Edge)
+
+Para permitir compartilhamento de tela com certificado HTTPS autoassinado:
+
+1. Acesse
+   `chrome://flags/#unsafely-treat-insecure-origin-as-secure`
+2. Altere para Enabled
+3. Adicione:
+   `https://192.168.0.100:8444`
+4. Reinicie o navegador
+
+---
+
+## Como Testar o Funcionamento
+
+1. Entre na sala autenticado como administrador
+2. Ative o Lobby
+3. Abra uma aba anônima ou outro dispositivo
+4. Entre na mesma sala
+
+Resultado esperado:
+
+* Convidado permanece aguardando permissão
+* Administrador recebe solicitação para liberar a entrada
+
+---
